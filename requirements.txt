@@ -1,0 +1,6 @@
+requests==2.32.5
+boto3==1.42.21
+warrant==0.6.1
+python-jose[cryptography]==3.3.0
+cryptography==46.0.3
+python-dateutil==2.9.0.post0
