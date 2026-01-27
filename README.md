@@ -1,6 +1,8 @@
 # Emporia API
 
-A Python API wrapper for Emporia Energy devices, providing authentication and device control functionality.
+A Python API wrapper for Emporia Energy devices, enabling seamless integration with Emporia EV chargers and energy monitors. Provides intuitive access to device control, real-time monitoring, consumption tracking, and more.
+
+> **Note:** This is an unofficial API wrapper. Use this repository to report issues, request features, or provide feedback.
 
 ## Features
 
@@ -13,45 +15,123 @@ A Python API wrapper for Emporia Energy devices, providing authentication and de
 
 ## Installation
 
+### From GitHub (Recommended)
+
+```bash
+pip install git+https://github.com/AndreCouture/emporia-api.git@main
+```
+
+### From Requirements File
+
+```txt
+# requirements.txt
+git+https://github.com/AndreCouture/emporia-api.git@main#egg=emporia-api
+```
+
 ### Local Development
 
 ```bash
-pip install -e /path/to/emporia-api
+git clone https://github.com/AndreCouture/emporia-api.git
+cd emporia-api
+pip install -e .
 ```
 
-### From Requirements
-
-```bash
-pip install -e ../emporia-api
-```
-
-## Usage
+## Quick Start
 
 ```python
 from emporia_api import EmporiaAPI
 
+# Configure with your Emporia account credentials
 config = {
     'user_pool_id': 'us-east-2_ghlOXVLi1',
     'client_id': '4qte47jbstod8apnfic0bunmrq',
     'region': 'us-east-2',
-    'emporia_username': 'your_username',
+    'emporia_username': 'your_username@example.com',
     'emporia_password': 'your_password'
 }
 
+# Initialize and authenticate
 api = EmporiaAPI(config)
 api.authenticate()
 
-# Get EV chargers
+# Get all EV chargers
 chargers = api.get_ev_chargers()
+print(f"Found {len(chargers)} EV charger(s)")
 
-# Control charger
-api.set_ev_charger(True)  # Turn on
+# Control a charger
+api.set_ev_charger(True)  # Turn ON
+api.set_ev_charger(False)  # Turn OFF
 
-# Stream real-time status
-def handle_event(event):
-    print(event)
+# Get real-time consumption
+usage = api.get_instant_usage(device_gids=[12345], energy_unit="KILOWATT_HOURS")
+print(f"Current usage: {usage[12345]} kW")
+```
 
-api.stream_device_status(handle_event)
+## Advanced Usage
+
+### Real-Time Device Monitoring (SSE Stream)
+
+```python
+import threading
+
+def handle_status_event(event):
+    """Called when device status changes"""
+    if event.get("event_type") == "DEVICE_STATUS":
+        evses = event.get("data", {}).get("evses", [])
+        for evse in evses:
+            print(f"Charger {evse['device_gid']}: {evse['status']}")
+
+# Start SSE stream in background thread
+stop_event = threading.Event()
+stream_thread = threading.Thread(
+    target=api.stream_device_status,
+    args=(handle_status_event, stop_event)
+)
+stream_thread.start()
+
+# ... do other work ...
+
+# Stop streaming when done
+stop_event.set()
+stream_thread.join()
+```
+
+### Multi-Device Consumption Tracking
+
+```python
+from datetime import datetime, timezone
+
+# Get instant usage for multiple devices at once
+device_ids = [12345, 67890]
+usage_data = api.get_instant_usage(
+    device_gids=device_ids,
+    energy_unit="KILOWATT_HOURS"
+)
+
+for device_id, watts in usage_data.items():
+    print(f"Device {device_id}: {watts}W")
+```
+
+### Historical Usage Data
+
+```python
+from datetime import datetime, timedelta, timezone
+
+# Get last hour of usage data
+end = datetime.now(timezone.utc)
+start = end - timedelta(hours=1)
+
+usage = api.get_chart_usage(
+    device_gid=12345,
+    channel="1,2,3",
+    start=start.isoformat(),
+    end=end.isoformat(),
+    scale="1S",  # 1-second resolution
+    energy_unit="KilowattHours"
+)
+
+print(f"First reading: {usage['firstUsageInstant']}")
+print(f"Data points: {len(usage['usageList'])}")
 ```
 
 ## API Methods
@@ -86,22 +166,78 @@ api.stream_device_status(handle_event)
 ### Preferences
 - `get_app_preferences()` - Get app preferences
 
+## Configuration
+
+The API requires AWS Cognito credentials for authentication. These values are specific to Emporia's infrastructure:
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `user_pool_id` | `us-east-2_ghlOXVLi1` | AWS Cognito User Pool ID |
+| `client_id` | `4qte47jbstod8apnfic0bunmrq` | AWS Cognito Client ID |
+| `region` | `us-east-2` | AWS Region |
+| `emporia_username` | Your email | Your Emporia account email |
+| `emporia_password` | Your password | Your Emporia account password |
+
+## Supported Devices
+
+- **EV Chargers**: Emporia EV chargers with real-time control and monitoring
+- **Energy Monitors**: Emporia Vue and Vue 2 energy monitors
+- **Smart Outlets**: Emporia smart plugs (experimental)
+
+## API Endpoints
+
+This library uses both legacy and modern Emporia API endpoints:
+
+- **Legacy API**: `api.emporiaenergy.com/AppAPI` (being phased out)
+- **Modern C-API**: `c-api.emporiaenergy.com/v1/` (recommended)
+- **SSE Stream**: `c-api.emporiaenergy.com/v1/customers/stream` (real-time events)
+
+## Contributing
+
+Contributions are welcome! Please feel free to:
+
+- Report bugs via [GitHub Issues](https://github.com/AndreCouture/emporia-api/issues)
+- Request features or enhancements
+- Submit pull requests with improvements
+
 ## Development
 
 ### Running Tests
 
 ```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run tests
 python test_emporia_api.py
+```
+
+### Code Structure
+
+```
+emporia_api/
+├── __init__.py       # Package exports
+└── api.py            # Main EmporiaAPI class
 ```
 
 ## Dependencies
 
-- `requests` - HTTP library
+- `requests` - HTTP client library
 - `boto3` - AWS SDK for Cognito authentication
 - `warrant` - AWS Cognito SRP authentication
-- `python-jose[cryptography]` - JWT handling
+- `python-jose[cryptography]` - JWT token handling
 - `cryptography` - Cryptographic operations
+- `python-dateutil` - Date/time utilities
+
+## Related Projects
+
+- [emporia-mqtt-service](https://github.com/AndreCouture/emporia-mqtt-service) - MQTT bridge for home automation
+- [PyEmVue](https://github.com/magico13/PyEmVue) - Alternative Emporia API wrapper
+
+## Disclaimer
+
+This is an unofficial API wrapper and is not affiliated with, endorsed by, or connected to Emporia Energy. Use at your own risk.
 
 ## License
 
-MIT License
+MIT License - See [LICENSE](LICENSE) file for details
