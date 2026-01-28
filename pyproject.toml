@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "emporia-api"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Python API wrapper for Emporia Energy devices"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -92,3 +92,6 @@ testpaths = ["."]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "emporia_api.__version__.__version__"}

@@ -1,8 +1,21 @@
+"""Setup configuration for emporia-api.
+
+Note: This file is maintained for backwards compatibility.
+The primary configuration is in pyproject.toml (PEP 621).
+"""
+
 from setuptools import setup, find_packages
+import os
+
+# Read version from __version__.py
+version = {}
+version_file = os.path.join(os.path.dirname(__file__), "emporia_api", "__version__.py")
+with open(version_file) as f:
+    exec(f.read(), version)
 
 setup(
     name="emporia-api",
-    version="0.1.0",
+    version=version["__version__"],
     packages=find_packages(),
     install_requires=[
         "requests>=2.32.5",
@@ -13,12 +26,27 @@ setup(
         "python-dateutil>=2.9.0.post0",
     ],
     author="Andre Couture",
-    description="A Python API for Emporia Energy devices",
-    url="https://github.com/yourusername/emporia_api", # User should update this
+    description="Python API wrapper for Emporia Energy devices",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/AndreCouture/emporia-api",
+    project_urls={
+        "Bug Reports": "https://github.com/AndreCouture/emporia-api/issues",
+        "Source": "https://github.com/AndreCouture/emporia-api",
+    },
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Topic :: Home Automation",
+        "Topic :: Software Development :: Libraries :: Python Modules",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
+    keywords="emporia energy monitoring ev-charger home-automation iot",
 )

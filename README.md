@@ -22,14 +22,25 @@ A Python API wrapper for Emporia Energy devices, enabling seamless integration w
 ### From GitHub (Recommended)
 
 ```bash
+# Install latest stable version
 pip install git+https://github.com/AndreCouture/emporia-api.git@main
+
+# Install specific version
+pip install git+https://github.com/AndreCouture/emporia-api.git@v1.0.0
+
+# Install development version
+pip install git+https://github.com/AndreCouture/emporia-api.git@dev
 ```
 
 ### From Requirements File
 
 ```txt
 # requirements.txt
+# Latest stable
 git+https://github.com/AndreCouture/emporia-api.git@main#egg=emporia-api
+
+# Specific version (recommended for production)
+git+https://github.com/AndreCouture/emporia-api.git@v1.0.0#egg=emporia-api
 ```
 
 ### Local Development
@@ -169,6 +180,39 @@ print(f"Data points: {len(usage['usageList'])}")
 
 ### Preferences
 - `get_app_preferences()` - Get app preferences
+
+## Versioning
+
+This library follows [Semantic Versioning](https://semver.org/). Version numbers use the format `MAJOR.MINOR.PATCH`:
+
+- **MAJOR**: Incompatible API changes
+- **MINOR**: New functionality (backwards-compatible)
+- **PATCH**: Bug fixes (backwards-compatible)
+
+### Checking Version
+
+```python
+import emporia_api
+print(emporia_api.__version__)  # e.g., "1.0.0"
+print(emporia_api.__version_info__)  # e.g., (1, 0, 0)
+```
+
+### Version History
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed release notes.
+
+### Pinning Versions
+
+For production use, pin to a specific version tag:
+
+```bash
+pip install git+https://github.com/AndreCouture/emporia-api.git@v1.0.0
+```
+
+Or in `requirements.txt`:
+```txt
+git+https://github.com/AndreCouture/emporia-api.git@v1.0.0#egg=emporia-api
+```
 
 ## Configuration
 
