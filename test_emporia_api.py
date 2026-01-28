@@ -21,8 +21,8 @@ class TestEmporiaAPI(unittest.TestCase):
         self.api = EmporiaAPI(self.mock_config)
         
         # ✅ Patch both boto3 and AWSSRP globally for this test class
-        with patch('emporia_api.boto3.client') as mock_boto, \
-             patch('emporia_api.AWSSRP') as mock_awssrp:
+        with patch('emporia_api.api.boto3.client') as mock_boto, \
+             patch('emporia_api.api.AWSSRP') as mock_awssrp:
                 
             # Mock Cognito Client and Token Generation
             mock_client = MagicMock()
@@ -56,7 +56,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertIn('authToken', self.api.emporia_headers)
         
     # ✅ Test successful device retrieval without re-authenticating
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_devices_successful(self, mock_requests_get):
         """Test the successful retrieval of devices."""
         mock_response = MagicMock()
@@ -69,7 +69,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(devices['devices'][0]['deviceGid'], "12345")
         
     # ✅ Test device status without re-authenticating
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_devices_status_successful(self, mock_requests_get):
         """Test getting device status successfully."""
         mock_response = MagicMock()
@@ -81,7 +81,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(result["status"], "online")
         
     # ✅ Force a re-authentication scenario
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_devices_status_unauthorized(self, mock_requests_get):
         """Test if the API re-authenticates on 401 error."""
         mock_response = MagicMock()
@@ -93,7 +93,7 @@ class TestEmporiaAPI(unittest.TestCase):
             mock_auth.assert_called_once()  # Ensure it attempted re-authentication
             
     # ✅ Test setting the EV charger state with proper handling
-    @patch('emporia_api.requests.put')
+    @patch('emporia_api.api.requests.put')
     def test_set_ev_charger_successful(self, mock_requests_put):
         """Test setting EV charger state."""
         mock_response = MagicMock()
@@ -106,7 +106,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(result, {})
         
     # ✅ Ensure charging rate calculation works (legacy endpoint)
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_current_charging_rate(self, mock_requests_get):
         """Test getting the current charging rate (legacy AppAPI endpoint)."""
         mock_response = MagicMock()
@@ -121,7 +121,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(rate, max([0.001, 0.002, 0.003]) * 3600000)
 
     # ✅ Test get_chart_usage (c-api)
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_chart_usage(self, mock_requests_get):
         """Test the c-api chart usage endpoint."""
         mock_response = MagicMock()
@@ -144,7 +144,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(len(result["usageList"]), 3)
 
     # ✅ Test get_devices_usages (c-api)
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_devices_usages(self, mock_requests_get):
         """Test the c-api devices usages endpoint."""
         mock_response = MagicMock()
@@ -174,7 +174,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(result["device_usages"][0]["device_gid"], 12345)
 
     # ✅ Test get_instant_usage (c-api wrapper)
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_instant_usage(self, mock_requests_get):
         """Test the new get_instant_usage method (c-api)."""
         mock_response = MagicMock()
@@ -211,7 +211,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(result[67890], 2.3 * 1000)
 
     # ✅ Test get_app_preferences (c-api with base64 decoding)
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_app_preferences(self, mock_requests_get):
         """Test the c-api app preferences endpoint with base64 decoding."""
         import base64
@@ -231,7 +231,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(result["units"], "metric")
 
     # ✅ Test get_devices_status_c_api
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_devices_status_c_api(self, mock_requests_get):
         """Test the c-api devices status endpoint."""
         mock_response = MagicMock()
@@ -254,7 +254,7 @@ class TestEmporiaAPI(unittest.TestCase):
         self.assertEqual(result["evses"][0]["charger_status"], "CHARGING")
 
     # ✅ Test 401 re-authentication for c-api endpoints
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_c_api_unauthorized_reauth(self, mock_requests_get):
         """Test that c-api endpoints re-authenticate on 401."""
         # First call returns 401, second succeeds
@@ -273,7 +273,7 @@ class TestEmporiaAPI(unittest.TestCase):
             self.assertIn("devices_connected", result)
 
     # ✅ Test get_current_month_peak_demand
-    @patch('emporia_api.requests.get')
+    @patch('emporia_api.api.requests.get')
     def test_get_current_month_peak_demand(self, mock_requests_get):
         """Test the peak demand endpoint."""
         mock_response = MagicMock()
