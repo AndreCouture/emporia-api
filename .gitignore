@@ -68,3 +68,7 @@ Thumbs.db
 # Test configs
 config.json
 .tokens/
+
+# Security scan reports
+bandit-report.json
+safety-report.json

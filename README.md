@@ -1,5 +1,9 @@
 # Emporia API
 
+![CI Status](https://github.com/AndreCouture/emporia-api/actions/workflows/ci.yml/badge.svg)
+![Python Versions](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A Python API wrapper for Emporia Energy devices, enabling seamless integration with Emporia EV chargers and energy monitors. Provides intuitive access to device control, real-time monitoring, consumption tracking, and more.
 
 > **Note:** This is an unofficial API wrapper. Use this repository to report issues, request features, or provide feedback.
@@ -202,15 +206,73 @@ Contributions are welcome! Please feel free to:
 
 ## Development
 
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/AndreCouture/emporia-api.git
+cd emporia-api
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Or install with optional dev dependencies
+pip install -e ".[dev]"
+```
+
 ### Running Tests
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Run all tests with pytest
+pytest
 
-# Run tests
+# Run with coverage report
+pytest --cov=emporia_api --cov-report=html
+
+# Run specific test file
+pytest test_emporia_api.py -v
+
+# Run with unittest (legacy)
 python test_emporia_api.py
 ```
+
+### Security Scanning
+
+```bash
+# Run Bandit (security linter)
+bandit -r emporia_api/
+
+# Check for dependency vulnerabilities
+safety check
+
+# Audit dependencies
+pip-audit
+```
+
+### Code Quality
+
+```bash
+# Format code with Black
+black emporia_api/
+
+# Sort imports
+isort emporia_api/
+
+# Lint with flake8
+flake8 emporia_api/
+
+# Lint with pylint
+pylint emporia_api/
+```
+
+### CI/CD
+
+The project uses GitHub Actions for automated testing and security checks:
+
+- **Tests**: Runs on Python 3.9, 3.10, 3.11, 3.12, and 3.13
+- **Security**: Bandit, Safety, and pip-audit scans
+- **Code Quality**: flake8, pylint, black, and isort checks
+- **Build**: Package build verification
 
 ### Code Structure
 
