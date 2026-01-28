@@ -220,11 +220,13 @@ The API requires AWS Cognito credentials for authentication. These values are sp
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
-| `user_pool_id` | `us-east-2_ghlOXVLi1` | AWS Cognito User Pool ID |
-| `client_id` | `4qte47jbstod8apnfic0bunmrq` | AWS Cognito Client ID |
-| `region` | `us-east-2` | AWS Region |
-| `emporia_username` | Your email | Your Emporia account email |
-| `emporia_password` | Your password | Your Emporia account password |
+| `user_pool_id` | `us-east-2_ghlOXVLi1` | AWS Cognito User Pool ID (not secret) |
+| `client_id` | `4qte47jbstod8apnfic0bunmrq` | AWS Cognito Client ID (not secret) |
+| `region` | `us-east-2` | AWS Region (not secret) |
+| `emporia_username` | Your email | Your Emporia account email (secret) |
+| `emporia_password` | Your password | Your Emporia account password (secret) |
+
+> **Note**: The `user_pool_id`, `client_id`, and `region` parameters are publicly visible identifiers used by Emporia's web application and mobile apps. They are not sensitive credentials. Only your username and password should be kept secret.
 
 ## Supported Devices
 
@@ -325,6 +327,80 @@ emporia_api/
 ├── __init__.py       # Package exports
 └── api.py            # Main EmporiaAPI class
 ```
+
+## Troubleshooting
+
+### Authentication Errors
+
+If you receive authentication errors when logging in, Emporia may have updated their AWS Cognito configuration. Common error messages include:
+
+- `ClientError: An error occurred (ResourceNotFoundException) when calling the InitiateAuth operation: User pool client does not exist.`
+- `ClientError: An error occurred (NotAuthorizedException) when calling the InitiateAuth operation`
+- HTTP 400/401 errors during authentication
+
+#### Extracting Updated Cognito Credentials
+
+If you encounter these errors, you can extract the current `user_pool_id` and `client_id` from Emporia's web application:
+
+1. **Open Emporia Web App** in your browser:
+   - Navigate to https://web.emporiaenergy.com/
+   - Open your browser's Developer Tools (F12 or right-click → Inspect)
+
+2. **Go to Network Tab**:
+   - Switch to the "Network" tab in Developer Tools
+   - Check "Preserve log" to keep requests visible
+
+3. **Log in to Emporia**:
+   - Enter your email and password
+   - Click "Sign In"
+
+4. **Find Cognito Request**:
+   - Look for a request to `cognito-idp.us-east-2.amazonaws.com`
+   - Click on the request to view details
+
+5. **Extract Values from Request Headers**:
+   - In the "Headers" tab, find `X-Amz-Target: AWSCognitoIdentityProviderService.InitiateAuth`
+   - In the "Payload" or "Request" tab, you'll see JSON like:
+   ```json
+   {
+     "AuthParameters": {
+       "USERNAME": "your-email@example.com",
+       "SRP_A": "..."
+     },
+     "AuthFlow": "USER_SRP_AUTH",
+     "ClientId": "4qte47jbstod8apnfic0bunmrq"
+   }
+   ```
+   - Note the `ClientId` value
+
+6. **Extract User Pool ID**:
+   - In the same request or nearby Cognito requests, look for:
+   ```json
+   {
+     "UserPoolId": "us-east-2_ghlOXVLi1",
+     ...
+   }
+   ```
+   - Or check the request URL which may contain the region (e.g., `cognito-idp.us-east-2.amazonaws.com`)
+
+7. **Update Your Configuration**:
+   ```python
+   api = EmporiaAPI(
+       emporia_username="your-email@example.com",
+       emporia_password="your-password",
+       user_pool_id="us-east-2_ghlOXVLi1",  # Updated value
+       client_id="4qte47jbstod8apnfic0bunmrq",  # Updated value
+       region="us-east-2"  # Extracted from URL
+   )
+   ```
+
+### Other Common Issues
+
+- **Rate Limiting**: If you see HTTP 429 errors, reduce polling frequency
+- **SSE Stream Disconnects**: The library automatically reconnects, but check your network stability
+- **Token Expiration**: Tokens are automatically refreshed; if issues persist, delete token cache and re-authenticate
+
+If problems continue, please [open an issue](https://github.com/AndreCouture/emporia-api/issues) with error details.
 
 ## Dependencies
 
