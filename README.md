@@ -94,7 +94,7 @@ def handle_status_event(event):
     if event.get("event_type") == "DEVICE_STATUS":
         evses = event.get("data", {}).get("evses", [])
         for evse in evses:
-            print(f"Charger {evse['device_gid']}: {evse['status']}")
+            print(f"Charger {evse['device_gid']}: {evse['charger_status']}")
 
 # Start SSE stream in background thread
 stop_event = threading.Event()
@@ -110,6 +110,29 @@ stream_thread.start()
 stop_event.set()
 stream_thread.join()
 ```
+
+**Example SSE Event Data:**
+
+```json
+{
+  "event_type": "DEVICE_STATUS",
+  "data": {
+    "devices_connected": [],
+    "batteries": [],
+    "evses": [
+      {
+        "device_id": "REDACTED",
+        "device_gid": 123456,
+        "load_gid": 789012,
+        "charger_status": "CHARGING"
+      }
+    ],
+    "outlets": []
+  }
+}
+```
+
+The `charger_status` field can be: `IDLE`, `CHARGING`, `READY`, `DISCONNECTED`, etc.
 
 ### Multi-Device Consumption Tracking
 
