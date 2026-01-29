@@ -184,7 +184,7 @@ class EmporiaAPI:
             self.authenticate()
 
         try:
-            response = requests.get(CUSTOMERS_DEVICES, headers=self.emporia_headers)
+            response = requests.get(CUSTOMERS_DEVICES, headers=self.emporia_headers, timeout=30)
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -199,12 +199,12 @@ class EmporiaAPI:
             self.authenticate()
 
         try:
-            response = requests.get(DEVICES_STATUS, headers=self.emporia_headers)
+            response = requests.get(DEVICES_STATUS, headers=self.emporia_headers, timeout=30)
             if response.status_code == 401:
                 # Possibly expired token; re-auth and try again
                 logging.warning("401 Unauthorized - re-authenticating...")
                 self.authenticate()
-                response = requests.get(DEVICES_STATUS, headers=self.emporia_headers)
+                response = requests.get(DEVICES_STATUS, headers=self.emporia_headers, timeout=30)
 
             response.raise_for_status()
             return response.json()
@@ -230,7 +230,7 @@ class EmporiaAPI:
                 logging.warning("No EV charger available to set state.")
                 return {}
             ev_charger_data["chargerOn"] = bool(on)
-            response = requests.put(EVCHARGER, json=ev_charger_data, headers=self.emporia_headers)
+            response = requests.put(EVCHARGER, json=ev_charger_data, headers=self.emporia_headers, timeout=30)
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -262,7 +262,7 @@ class EmporiaAPI:
 
         try:
             ev_charger_data["chargerOn"] = bool(on)
-            response = requests.put(EVCHARGER, json=ev_charger_data, headers=self.emporia_headers)
+            response = requests.put(EVCHARGER, json=ev_charger_data, headers=self.emporia_headers, timeout=30)
             response.raise_for_status()
             return response.json()
         except Exception as e:
@@ -319,7 +319,7 @@ class EmporiaAPI:
         )
 
         try:
-            response = requests.get(url, headers=self.emporia_headers)
+            response = requests.get(url, headers=self.emporia_headers, timeout=30)
             response.raise_for_status()
             data = response.json()
             usage_list = data.get("usageList") or []
@@ -406,7 +406,7 @@ class EmporiaAPI:
             # 3) Perform API call to update the rate
             try:
                 endpoint = EMPORIA_CHANGE_RATE.format(device_gid)
-                resp = requests.patch(endpoint, json=device, headers=self.emporia_headers)
+                resp = requests.patch(endpoint, json=device, headers=self.emporia_headers, timeout=30)
                 if resp.status_code == 200:
                     logging.info(f"Successfully updated rate for device {device_gid}.")
                 else:
@@ -757,7 +757,8 @@ class EmporiaAPI:
                     headers["Authorization"] = f"Bearer {id_token}"
 
                 logging.info("Connecting to device status SSE stream...")
-                resp = requests.get(url, headers=headers, stream=True, timeout=None)
+                # SSE streams require no timeout for long-lived connections
+                resp = requests.get(url, headers=headers, stream=True, timeout=None)  # nosec B113
 
                 if resp.status_code == 401:
                     logging.warning("401 Unauthorized on SSE stream - re-authenticating...")

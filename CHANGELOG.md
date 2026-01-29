@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Added timeout parameter (30s) to all HTTP requests for security compliance (CWE-400)
+- SSE stream connection intentionally uses no timeout (documented with nosec)
+
+### Changed
+- Enhanced SSE stream documentation with example event structure
+
 ### Added
 - CI/CD pipeline with GitHub Actions
 - Multi-Python version testing (3.9-3.13)
